@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 
 import BlogTile from './subcomponents/BlogTile';
 import UserTile from './subcomponents/UserTile';
-
+import axios from 'axios';
 // import axios
 
 class Search extends Component{
@@ -15,15 +15,27 @@ class Search extends Component{
             searchType: 'blogs',
         }
     }
-    
-    
+
+
     // insert search method
-    
-    
+    search(event){
+      event.preventDefault()
+      axios.get(`/api/${this.state.searchType}?q=${this.state.searchTerm}`)
+      .then(res=>{
+        if(this.state.searchType==="blogs"){
+          this.props.history.push(makeQuery('/search?',{q:this.state.searchTerm,type:this.state.searchType}));
+          this.setState({blogResults: res.data, userResults:[]})
+        }else if(this.state.searchType==="user"){
+          this.props.history.push(makeQuery('/search?',{q:this.state.searchTerm,type:this.state.searchType}));
+          this.setState({userResults: res.data, blogResults:[]})
+        }
+      }).catch(console.log);
+    }
+
     render(){
         // map over the blogResults and userResults here, replace the empty arrays.
-        const blogResults = []
-        const userResults = []
+        const blogResults = this.state.blogResults.map((c,i)=><BlogTile key={i} blog={c}/>)
+        const userResults = this.state.userResults.map((c,i)=><UserTile key={i} blog={c}/>)
 
         return(
             <div className='content search-view' >
@@ -41,7 +53,7 @@ class Search extends Component{
                     {blogResults}
                     {userResults}
 
-                    
+
                     {
                         blogResults.length || userResults.length
                         ?
@@ -50,7 +62,7 @@ class Search extends Component{
                         <p style={{alignSelf: 'top', justifySelf: 'center'}}>No results fit your search.</p>
                     }
                 </div>
-                
+
             </div>
         )
     }
@@ -69,7 +81,7 @@ class Search extends Component{
         this.urlSearch()
     }
     componentDidMount(){
-        this.urlSearch()        
+        this.urlSearch()
     }
     urlSearch(){
         let search = this.props.history.location.search;
